@@ -5,7 +5,7 @@
   "description": "GitHub Action for automating the `needs-reply` workflow, common in repositories that have high issue counts.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && ncc build",
     "watch": "tsc -w"
   },
   "repository": {

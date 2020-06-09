@@ -1,0 +1,30 @@
+{
+  "name": "@dwieeb/needs-reply",
+  "private": true,
+  "version": "1.0.0",
+  "description": "GitHub Action for automating the `needs-reply` workflow, common in repositories that have high issue counts.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dwieeb/needs-reply.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dwieeb/needs-reply/issues"
+  },
+  "homepage": "https://github.com/dwieeb/needs-reply#readme",
+  "dependencies": {
+    "@actions/core": "^1.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^12.12.14",
+    "@zeit/ncc": "^0.22.3",
+    "typescript": "^3.7.2"
+  }
+}

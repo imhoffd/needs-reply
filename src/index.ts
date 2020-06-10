@@ -72,7 +72,7 @@ const processIssues = async ({
       const now = new Date().getTime();
       const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60 / 24;
 
-      if (false && daysSinceUpdated < daysBeforeClose) {
+      if (daysSinceUpdated < daysBeforeClose) {
         core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
         continue;
       }

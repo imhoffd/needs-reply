@@ -4,6 +4,7 @@ import * as github from '@actions/github';
 interface Options {
   readonly repoToken: string;
   readonly issueLabel: string;
+  readonly closeMessage: string;
   readonly operationsPerRun: number;
   readonly daysBeforeClose: number;
 }
@@ -11,6 +12,7 @@ interface Options {
 const processIssues = async ({
   repoToken,
   issueLabel,
+  closeMessage,
   operationsPerRun,
   daysBeforeClose,
 }: Options): Promise<void> => {
@@ -49,19 +51,62 @@ const processIssues = async ({
       const isPr = !!issue.pull_request;
       const issueType = isPr ? 'pr' : 'issue';
 
-      core.info(`Found issue: issue #${issue.number} (type: ${issueType})`);
+      core.info(`Found issue: ${issueType} #${issue.number}`);
 
       if (issue.state === 'closed') {
-        core.info(`Skipping ${issueType} because it is closed`);
+        core.info(`Skipping ${issueType} #${issue.number} because it is closed`);
         continue;
       }
 
-      if (issue.state === 'locked') {
-        core.info(`Skipping ${issueType} because it is locked`);
+      if (issue.locked) {
+        core.info(`Skipping ${issueType} #${issue.number} because it is locked`);
         continue;
       }
 
-      console.log(issue);
+      if (!issue.labels.map(l => l.name).includes(issueLabel)) {
+        core.info(`Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`);
+        continue;
+      }
+
+      const updatedAt = new Date(issue.updated_at).getTime();
+      const now = new Date().getTime();
+      const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60;
+
+      if (daysSinceUpdated < daysBeforeClose) {
+        core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
+        continue;
+      }
+
+      if (closeMessage) {
+        await client.issues.createComment({
+          owner: github.context.repo.owner,
+          repo: github.context.repo.repo,
+          issue_number: issue.number,
+          body: closeMessage,
+        });
+
+        operations += 1;
+
+        core.info(`Added comment to ${issueType} #${issue.number}`);
+      }
+
+      await client.issues.update({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: issue.number,
+        state: 'closed',
+      });
+
+      await client.issues.removeLabel({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: issue.number,
+        name: issueLabel,
+      });
+
+      core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label`);
+
+      operations += 2;
     }
 
     if (operations >= operationsPerRun) {
@@ -78,12 +123,14 @@ const processIssues = async ({
 const getOptions = (): Options => {
   const repoToken = core.getInput('repo-token', { required: true });
   const issueLabel = core.getInput('issue-label', { required: true });
+  const closeMessage = core.getInput('close-message', { required: true });
   const operationsPerRun = getNumberInput('operations-per-run', { required: true });
   const daysBeforeClose = getNumberInput('days-before-close', { required: true });
 
   return {
     repoToken,
     issueLabel,
+    closeMessage,
     operationsPerRun,
     daysBeforeClose,
   };

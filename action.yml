@@ -7,11 +7,14 @@ inputs:
   issue-label:
     description: The label to look for when closing issues.
     default: needs-reply
-  operations-per-run:
-    description: The maximum number of operations per run, used to control rate limiting.
-    default: 30
   days-before-close:
     description: The number of days to wait to close an issue after the label has been added.
+    default: 30
+  close-message:
+    description: The comment to post when the issue is closed. To disable, pass in an empty string.
+    default: It looks like there hasn't been a reply in 30 days, so I'm closing this issue.
+  operations-per-run:
+    description: The maximum number of operations per run, used to control rate limiting.
     default: 30
 runs:
   using: node12

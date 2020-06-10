@@ -3357,7 +3357,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const github = __importStar(__webpack_require__(469));
-const processIssues = async ({ repoToken, issueLabel, operationsPerRun, daysBeforeClose, }) => {
+const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPerRun, daysBeforeClose, }) => {
     const client = github.getOctokit(repoToken);
     let operations = 0;
     const getIssues = async (page) => {
@@ -3387,16 +3387,50 @@ const processIssues = async ({ repoToken, issueLabel, operationsPerRun, daysBefo
         for (const issue of issues) {
             const isPr = !!issue.pull_request;
             const issueType = isPr ? 'pr' : 'issue';
-            core.info(`Found issue: issue #${issue.number} (type: ${issueType})`);
+            core.info(`Found issue: ${issueType} #${issue.number}`);
             if (issue.state === 'closed') {
-                core.info(`Skipping ${issueType} because it is closed`);
+                core.info(`Skipping ${issueType} #${issue.number} because it is closed`);
                 continue;
             }
-            if (issue.state === 'locked') {
-                core.info(`Skipping ${issueType} because it is locked`);
+            if (issue.locked) {
+                core.info(`Skipping ${issueType} #${issue.number} because it is locked`);
                 continue;
             }
-            console.log(issue);
+            if (!issue.labels.map(l => l.name).includes(issueLabel)) {
+                core.info(`Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`);
+                continue;
+            }
+            const updatedAt = new Date(issue.updated_at).getTime();
+            const now = new Date().getTime();
+            const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60;
+            if (daysSinceUpdated < daysBeforeClose) {
+                core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
+                continue;
+            }
+            if (closeMessage) {
+                await client.issues.createComment({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    issue_number: issue.number,
+                    body: closeMessage,
+                });
+                operations += 1;
+                core.info(`Added comment to ${issueType} #${issue.number}`);
+            }
+            await client.issues.update({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+            });
+            await client.issues.removeLabel({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                issue_number: issue.number,
+                name: issueLabel,
+            });
+            core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label`);
+            operations += 2;
         }
         if (operations >= operationsPerRun) {
             core.warning('Reached max number of operations to process. Exiting.');
@@ -3409,11 +3443,13 @@ const processIssues = async ({ repoToken, issueLabel, operationsPerRun, daysBefo
 const getOptions = () => {
     const repoToken = core.getInput('repo-token', { required: true });
     const issueLabel = core.getInput('issue-label', { required: true });
+    const closeMessage = core.getInput('close-message', { required: true });
     const operationsPerRun = getNumberInput('operations-per-run', { required: true });
     const daysBeforeClose = getNumberInput('days-before-close', { required: true });
     return {
         repoToken,
         issueLabel,
+        closeMessage,
         operationsPerRun,
         daysBeforeClose,
     };

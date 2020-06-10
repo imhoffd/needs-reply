@@ -4,6 +4,15 @@ inputs:
   repo-token:
     description: Personal Access Token for GitHub Repository
     required: true
+  issue-label:
+    description: The label to look for when closing issues.
+    default: needs-reply
+  operations-per-run:
+    description: The maximum number of operations per run, used to control rate limiting.
+    default: 30
+  days-before-close:
+    description: The number of days to wait to close an issue after the label has been added.
+    default: 30
 runs:
   using: node12
   main: dist/index.js

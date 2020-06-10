@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/dwieeb/needs-reply#readme",
   "dependencies": {
-    "@actions/core": "^1.2.0"
+    "@actions/core": "^1.2.0",
+    "@actions/github": "^3.0.0"
   },
   "devDependencies": {
     "@types/node": "^12.12.14",

@@ -1,7 +1,5 @@
 # Automate `needs-reply`
 
-GitHub Action for automating the `needs-reply` workflow, common in repositories that have high issue counts.
-
 When an issue needs more information, comment on it and then add the `needs-reply` label. After a given timeframe and without any new comments, the issue is automatically closed with a message.
 
 ## Usage

@@ -1,5 +1,5 @@
-name: Needs Reply
-description: GitHub Action for automating the `needs-reply` workflow, common in repositories that have high issue counts.
+name: Close issues after no reply
+description: Closes issues with a message after no reply in a given timeframe
 inputs:
   repo-token:
     description: Personal Access Token for GitHub Repository

@@ -2,7 +2,7 @@
   "name": "@dwieeb/needs-reply",
   "private": true,
   "version": "1.0.0",
-  "description": "GitHub Action for automating the `needs-reply` workflow, common in repositories that have high issue counts.",
+  "description": "Closes issues with a message after no reply in a given timeframe",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc && ncc build",

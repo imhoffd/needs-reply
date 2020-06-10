@@ -20,7 +20,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Remove Needs Reply
+      - name: Remove needs-reply label
         uses: octokit/request-action@v2.x
         continue-on-error: true
         with:
@@ -45,7 +45,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Needs Reply
+      - name: Close old issues that need reply
         uses: dwieeb/needs-reply@v1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}

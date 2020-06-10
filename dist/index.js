@@ -3403,10 +3403,7 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
             const updatedAt = new Date(issue.updated_at).getTime();
             const now = new Date().getTime();
             const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60 / 24;
-            if (true) {
-                core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
-                continue;
-            }
+            if (false) {}
             if (closeMessage) {
                 await client.issues.createComment({
                     owner: github.context.repo.owner,

@@ -3462,12 +3462,27 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
                 core.info(`Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`);
                 continue;
             }
-            const updatedAt = new Date(issue.updated_at).getTime();
+            let updatedAt = new Date(issue.updated_at).getTime();
+            const numComments = issue.comments;
+            const comments = await client.issues.listComments({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                issue_number: issue.number,
+                per_page: 30,
+                page: Math.floor((numComments - 1) / 30) + 1,
+            });
+            operations += 1;
+            const lastComments = comments.data.map(l => new Date(l.created_at).getTime()).sort();
+            if (lastComments.length > 0)
+                updatedAt = lastComments[lastComments.length - 1];
             const now = new Date().getTime();
             const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60 / 24;
             if (daysSinceUpdated < daysBeforeClose) {
                 core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
                 continue;
+            }
+            else {
+                core.info(`Closing ${issueType} #${issue.number} because it has not been updated in the last ${daysSinceUpdated} days`);
             }
             if (closeMessage) {
                 await client.issues.createComment({

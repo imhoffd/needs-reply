@@ -54,17 +54,23 @@ const processIssues = async ({
       core.info(`Found issue: ${issueType} #${issue.number}`);
 
       if (issue.state === 'closed') {
-        core.info(`Skipping ${issueType} #${issue.number} because it is closed`);
+        core.info(
+          `Skipping ${issueType} #${issue.number} because it is closed`,
+        );
         continue;
       }
 
       if (issue.locked) {
-        core.info(`Skipping ${issueType} #${issue.number} because it is locked`);
+        core.info(
+          `Skipping ${issueType} #${issue.number} because it is locked`,
+        );
         continue;
       }
 
       if (!issue.labels.map(l => l.name).includes(issueLabel)) {
-        core.info(`Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`);
+        core.info(
+          `Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`,
+        );
         continue;
       }
 
@@ -79,15 +85,20 @@ const processIssues = async ({
         page: Math.floor((numComments - 1) / 30) + 1, // the last page
       });
       operations += 1;
-      const lastComments = comments.data.map(l => new Date(l.created_at).getTime()).sort();
-      if (lastComments.length > 0)
+      const lastComments = comments.data
+        .map(l => new Date(l.created_at).getTime())
+        .sort();
+      if (lastComments.length > 0) {
         updatedAt = lastComments[lastComments.length - 1];
+      }
 
       const now = new Date().getTime();
       const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60 / 24;
 
       if (daysSinceUpdated < daysBeforeClose) {
-        core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
+        core.info(
+          `Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`,
+        );
         continue;
       }
 
@@ -118,7 +129,9 @@ const processIssues = async ({
         name: issueLabel,
       });
 
-      core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label because it has not been updated in the last ${daysSinceUpdated} days`);
+      core.info(
+        `Closed ${issueType} #${issue.number} and removed ${issueLabel} label because it has not been updated in the last ${daysSinceUpdated} days`,
+      );
 
       operations += 2;
     }
@@ -138,8 +151,12 @@ const getOptions = (): Options => {
   const repoToken = core.getInput('repo-token', { required: true });
   const issueLabel = core.getInput('issue-label', { required: true });
   const closeMessage = core.getInput('close-message', { required: true });
-  const operationsPerRun = getNumberInput('operations-per-run', { required: true });
-  const daysBeforeClose = getNumberInput('days-before-close', { required: true });
+  const operationsPerRun = getNumberInput('operations-per-run', {
+    required: true,
+  });
+  const daysBeforeClose = getNumberInput('days-before-close', {
+    required: true,
+  });
 
   return {
     repoToken,
@@ -150,7 +167,10 @@ const getOptions = (): Options => {
   };
 };
 
-const getNumberInput = (input: string, options: core.InputOptions = {}): number => {
+const getNumberInput = (
+  input: string,
+  options: core.InputOptions = {},
+): number => {
   const value = Number.parseInt(core.getInput(input, options), 10);
 
   if (options.required && Number.isNaN(value)) {

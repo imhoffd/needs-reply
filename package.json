@@ -5,6 +5,9 @@
   "description": "Closes issues with a message after no reply in a given timeframe",
   "main": "dist/index.js",
   "scripts": {
+    "prettier": "prettier 'src/**/*.ts'",
+    "fmt": "npm run prettier -- --write",
+    "lint": "npm run prettier -- --check",
     "build": "tsc && ncc build",
     "watch": "tsc -w"
   },
@@ -24,8 +27,11 @@
     "@actions/github": "^3.0.0"
   },
   "devDependencies": {
+    "@ionic/prettier-config": "^1.0.1",
     "@types/node": "^12.12.14",
     "@zeit/ncc": "^0.22.3",
+    "prettier": "^2.2.1",
     "typescript": "^3.7.2"
-  }
+  },
+  "prettier": "@ionic/prettier-config"
 }

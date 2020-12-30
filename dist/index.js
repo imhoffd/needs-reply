@@ -3472,9 +3472,12 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
                 page: Math.floor((numComments - 1) / 30) + 1,
             });
             operations += 1;
-            const lastComments = comments.data.map(l => new Date(l.created_at).getTime()).sort();
-            if (lastComments.length > 0)
+            const lastComments = comments.data
+                .map(l => new Date(l.created_at).getTime())
+                .sort();
+            if (lastComments.length > 0) {
                 updatedAt = lastComments[lastComments.length - 1];
+            }
             const now = new Date().getTime();
             const daysSinceUpdated = (now - updatedAt) / 1000 / 60 / 60 / 24;
             if (daysSinceUpdated < daysBeforeClose) {
@@ -3518,8 +3521,12 @@ const getOptions = () => {
     const repoToken = core.getInput('repo-token', { required: true });
     const issueLabel = core.getInput('issue-label', { required: true });
     const closeMessage = core.getInput('close-message', { required: true });
-    const operationsPerRun = getNumberInput('operations-per-run', { required: true });
-    const daysBeforeClose = getNumberInput('days-before-close', { required: true });
+    const operationsPerRun = getNumberInput('operations-per-run', {
+        required: true,
+    });
+    const daysBeforeClose = getNumberInput('days-before-close', {
+        required: true,
+    });
     return {
         repoToken,
         issueLabel,

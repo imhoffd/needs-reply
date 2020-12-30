@@ -89,8 +89,6 @@ const processIssues = async ({
       if (daysSinceUpdated < daysBeforeClose) {
         core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
         continue;
-      } else {
-        core.info(`Closing ${issueType} #${issue.number} because it has not been updated in the last ${daysSinceUpdated} days`);
       }
 
       if (closeMessage) {
@@ -120,7 +118,7 @@ const processIssues = async ({
         name: issueLabel,
       });
 
-      core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label`);
+      core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label because it has not been updated in the last ${daysSinceUpdated} days`);
 
       operations += 2;
     }

@@ -3481,9 +3481,6 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
                 core.info(`Skipping ${issueType} #${issue.number} because it has been updated in the last ${daysSinceUpdated} days`);
                 continue;
             }
-            else {
-                core.info(`Closing ${issueType} #${issue.number} because it has not been updated in the last ${daysSinceUpdated} days`);
-            }
             if (closeMessage) {
                 await client.issues.createComment({
                     owner: github.context.repo.owner,
@@ -3506,7 +3503,7 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
                 issue_number: issue.number,
                 name: issueLabel,
             });
-            core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label`);
+            core.info(`Closed ${issueType} #${issue.number} and removed ${issueLabel} label because it has not been updated in the last ${daysSinceUpdated} days`);
             operations += 2;
         }
         if (operations >= operationsPerRun) {

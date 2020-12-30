@@ -1,7 +1,7 @@
 {
   "name": "@dwieeb/needs-reply",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Closes issues with a message after no reply in a given timeframe",
   "main": "dist/index.js",
   "scripts": {

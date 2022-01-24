@@ -4,7 +4,8 @@ When an issue needs more information, comment on it and then add the `needs-repl
 
 ## Usage
 
-First, create a workflow (`.github/workflows/needs-reply-remove.yml`, for example) that removes the `needs-reply` label whenever comments are made:
+First, create a workflow (`.github/workflows/needs-reply-remove.yml`, for example) that removes the `needs-reply` label whenever comments are made.
+Comments you or your collaborators make don't trigger removing the label, you can tweak the conditions as needed:
 
 ```yml
 name: Remove needs-reply label
@@ -17,6 +18,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: |
+      github.event.comment.author_association != 'OWNER' &&
+      github.event.comment.author_association != 'COLLABORATOR'
     steps:
       - name: Remove needs-reply label
         uses: octokit/request-action@v2.x

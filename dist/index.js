@@ -32,7 +32,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(7484));
 const github = __importStar(__nccwpck_require__(3228));
-const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPerRun, daysBeforeClose, }) => {
+const checkClose = async ({ repoToken, issueLabel, closeMessage, operationsPerRun, daysBeforeClose, }) => {
     const client = github.getOctokit(repoToken).rest;
     let operations = 0;
     const getIssues = async (page) => {
@@ -132,7 +132,35 @@ const processIssues = async ({ repoToken, issueLabel, closeMessage, operationsPe
     };
     await processBatch();
 };
+const checkActivity = async ({ repoToken, issueLabel, }) => {
+    if (!github.context.payload.issue) {
+        core.error('Could not determine issue number');
+        return;
+    }
+    const association = github.context.payload?.comment?.author_association;
+    // Collaborators will be the ones setting the needs reply label while they comment on why. Avoid
+    // removing the label right with their comment.
+    if (association == 'OWNER' || association == 'COLLABORATOR') {
+        core.info(`Not removing label, comment is from ${association.toLowerCase()}`);
+        return;
+    }
+    const client = github.getOctokit(repoToken).rest;
+    let issueNumber = github.context.payload.issue?.number ||
+        github.context.payload.pull_request?.number;
+    if (!issueNumber) {
+        core.error('Could not determine issue number from event');
+        return;
+    }
+    await client.issues.removeLabel({
+        owner: github.context.repo.owner,
+        repo: github.context.repo.repo,
+        issue_number: issueNumber,
+        name: issueLabel,
+    });
+    core.info(`Removed the ${issueLabel} on #${issueNumber} due to comment activity`);
+};
 const getOptions = () => {
+    const action = core.getInput('action');
     const repoToken = core.getInput('repo-token', { required: true });
     const issueLabel = core.getInput('issue-label', { required: true });
     const closeMessage = core.getInput('close-message', { required: true });
@@ -143,6 +171,7 @@ const getOptions = () => {
         required: true,
     });
     return {
+        action,
         repoToken,
         issueLabel,
         closeMessage,
@@ -160,7 +189,12 @@ const getNumberInput = (input, options = {}) => {
 const run = async () => {
     try {
         const options = getOptions();
-        await processIssues(options);
+        if (options.action == 'close') {
+            await checkClose(options);
+        }
+        else {
+            await checkActivity(options);
+        }
     }
     catch (e) {
         const error = new Error('Run error', { cause: e });

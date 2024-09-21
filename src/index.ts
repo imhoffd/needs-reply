@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import * as github from '@actions/github'
 
 interface Options {
+  readonly action: string
   readonly repoToken: string
   readonly issueLabel: string
   readonly closeMessage: string
@@ -9,7 +10,7 @@ interface Options {
   readonly daysBeforeClose: number
 }
 
-const processIssues = async ({
+const checkClose = async ({
   repoToken,
   issueLabel,
   closeMessage,
@@ -147,7 +148,50 @@ const processIssues = async ({
   await processBatch()
 }
 
+const checkActivity = async ({
+  repoToken,
+  issueLabel,
+}: Options): Promise<void> => {
+  if (!github.context.payload.issue) {
+    core.error('Could not determine issue number')
+    return
+  }
+
+  const association = github.context.payload?.comment?.author_association
+  // Collaborators will be the ones setting the needs reply label while they comment on why. Avoid
+  // removing the label right with their comment.
+  if (association == 'OWNER' || association == 'COLLABORATOR') {
+    core.info(
+      `Not removing label, comment is from ${association.toLowerCase()}`,
+    )
+    return
+  }
+
+  const client = github.getOctokit(repoToken).rest
+
+  let issueNumber =
+    github.context.payload.issue?.number ||
+    github.context.payload.pull_request?.number
+
+  if (!issueNumber) {
+    core.error('Could not determine issue number from event')
+    return
+  }
+
+  await client.issues.removeLabel({
+    owner: github.context.repo.owner,
+    repo: github.context.repo.repo,
+    issue_number: issueNumber,
+    name: issueLabel,
+  })
+
+  core.info(
+    `Removed the ${issueLabel} on #${issueNumber} due to comment activity`,
+  )
+}
+
 const getOptions = (): Options => {
+  const action = core.getInput('action')
   const repoToken = core.getInput('repo-token', { required: true })
   const issueLabel = core.getInput('issue-label', { required: true })
   const closeMessage = core.getInput('close-message', { required: true })
@@ -161,6 +205,7 @@ const getOptions = (): Options => {
   })
 
   return {
+    action,
     repoToken,
     issueLabel,
     closeMessage,
@@ -185,7 +230,11 @@ const getNumberInput = (
 const run = async (): Promise<void> => {
   try {
     const options = getOptions()
-    await processIssues(options)
+    if (options.action == 'close') {
+      await checkClose(options)
+    } else {
+      await checkActivity(options)
+    }
   } catch (e) {
     const error = new Error('Run error', { cause: e })
     core.error(error)

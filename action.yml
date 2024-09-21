@@ -1,6 +1,9 @@
 name: Close issues after no reply
 description: Closes issues with a message after no reply in a given timeframe
 inputs:
+  action:
+    description: Either check for issues to be closed (close), or removing the label on activity (activity)
+    default: close
   repo-token:
     description: Personal Access Token for GitHub Repository
     required: true

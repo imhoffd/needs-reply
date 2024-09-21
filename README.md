@@ -18,20 +18,13 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: |
-      github.event.comment.author_association != 'OWNER' &&
-      github.event.comment.author_association != 'COLLABORATOR'
     steps:
       - name: Remove needs-reply label
-        uses: octokit/request-action@v2.x
-        continue-on-error: true
+        uses: imhoffd/needs-reply@v2
         with:
-          route: DELETE /repos/:repository/issues/:issue/labels/:label
-          repository: ${{ github.repository }}
-          issue: ${{ github.event.issue.number }}
-          label: needs-reply
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          action: activity
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          issue-label: needs-reply
 ```
 
 Then, create a workflow (`.github/workflows/needs-reply.yml`, for example) that closes old issues that have the `needs-reply` label and have not been replied to in 30 days:
@@ -50,11 +43,17 @@ jobs:
       - name: Close old issues that need reply
         uses: imhoffd/needs-reply@v2
         with:
+          action: close
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           issue-label: needs-reply
 ```
 
 ## Inputs
+
+- **`action`** _(string)_: The action to execute, defaults to `close`
+
+    `close`: Close all old issues that are pending a reply. Trigger this via cron job.
+    `activity`: Remove the issue label. Trigger this on comment creation.
 
 - **`repo-token`** _**(required)**_ _(string)_: The GitHub Personal Action Token used to authorize with the repository.
 

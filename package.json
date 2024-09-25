@@ -23,15 +23,15 @@
   },
   "homepage": "https://github.com/dwieeb/needs-reply#readme",
   "dependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^3.0.0"
+    "@actions/core": "^1.10.1",
+    "@actions/github": "^6.0.0",
+    "@vercel/ncc": "^0.38.2"
   },
   "devDependencies": {
-    "@ionic/prettier-config": "^1.0.1",
-    "@types/node": "^12.12.14",
-    "@zeit/ncc": "^0.22.3",
-    "prettier": "^2.2.1",
-    "typescript": "^3.7.2"
+    "@ionic/prettier-config": "^4.0.0",
+    "@types/node": "^22.7.1",
+    "prettier": "^3.3.3",
+    "typescript": "^5.6.2"
   },
   "prettier": "@ionic/prettier-config"
 }

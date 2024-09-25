@@ -16,7 +16,7 @@ const processIssues = async ({
   operationsPerRun,
   daysBeforeClose,
 }: Options): Promise<void> => {
-  const client = github.getOctokit(repoToken);
+  const client = github.getOctokit(repoToken).rest;
   let operations = 0;
 
   const getIssues = async (page: number) => {
@@ -34,7 +34,7 @@ const processIssues = async ({
 
       return issues.data;
     } catch (e) {
-      core.error(`Get issues for repo error: ${e.message}`);
+      core.error(new Error('Get issues for repo error', { cause: e }));
       return [];
     }
   };
@@ -54,23 +54,17 @@ const processIssues = async ({
       core.info(`Found issue: ${issueType} #${issue.number}`);
 
       if (issue.state === 'closed') {
-        core.info(
-          `Skipping ${issueType} #${issue.number} because it is closed`,
-        );
+        core.info(`Skipping ${issueType} #${issue.number} because it is closed`);
         continue;
       }
 
       if (issue.locked) {
-        core.info(
-          `Skipping ${issueType} #${issue.number} because it is locked`,
-        );
+        core.info(`Skipping ${issueType} #${issue.number} because it is locked`);
         continue;
       }
 
-      if (!issue.labels.map(l => l.name).includes(issueLabel)) {
-        core.info(
-          `Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`,
-        );
+      if (!issue.labels.map((l) => (typeof l === 'string' ? l : l.name)).includes(issueLabel)) {
+        core.info(`Skipping ${issueType} #${issue.number} because it does not have the ${issueLabel} label`);
         continue;
       }
 
@@ -85,9 +79,7 @@ const processIssues = async ({
         page: Math.floor((numComments - 1) / 30) + 1, // the last page
       });
       operations += 1;
-      const lastComments = comments.data
-        .map(l => new Date(l.created_at).getTime())
-        .sort();
+      const lastComments = comments.data.map((l) => new Date(l.created_at).getTime()).sort();
       if (lastComments.length > 0) {
         updatedAt = lastComments[lastComments.length - 1];
       }
@@ -167,10 +159,7 @@ const getOptions = (): Options => {
   };
 };
 
-const getNumberInput = (
-  input: string,
-  options: core.InputOptions = {},
-): number => {
+const getNumberInput = (input: string, options: core.InputOptions = {}): number => {
   const value = Number.parseInt(core.getInput(input, options), 10);
 
   if (options.required && Number.isNaN(value)) {
@@ -185,8 +174,9 @@ const run = async (): Promise<void> => {
     const options = getOptions();
     await processIssues(options);
   } catch (e) {
-    core.error(e);
-    core.setFailed(e.message);
+    const error = new Error('Run error', { cause: e });
+    core.error(error);
+    core.setFailed(error.message);
   }
 };
 
